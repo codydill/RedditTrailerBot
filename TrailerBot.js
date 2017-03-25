@@ -13,18 +13,25 @@ const CONFIG = {
 
 const netflix_sub_name = 'NetflixBestOf';
 const netflix_domain_name = 'netflix.com';
+const test_sub_name = 'testingground4bots';
 
 var r = new snoowrap(CONFIG);
-var listing = r.getSubreddit(netflix_sub_name).getNew({limit : 10}).then(all => {
+
+r.getSubreddit(test_sub_name).getNew({limit : 1}).then(all => {
     all.forEach(post => {
-        if (isValidDomain(post)) {
-            post.expandReplies().then(printValidPost);
-        }
+        post.expandReplies().then(process(post));
     })
 });
 
-function parseTitle(title) {
 
+
+function process(post){
+    //if (isValidDomain(post) && !hasTrailer(post)){
+    if (true) {
+        var title = parseTitle(post.title);
+        var url = getTrailerURL(title);
+        post.reply("[Trailer](" + url +")");
+    }
 }
 
 function isValidDomain(post) {
@@ -38,6 +45,14 @@ function hasTrailer(post) {
         }
     }
     return false;
+}
+
+function parseTitle(title) {
+    return title;
+}
+
+function getTrailerURL(title) {
+    return "https://www.youtube.com/watch?v=-ZUwq1qOqpE";
 }
 
 function printValidPost(post){
