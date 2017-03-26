@@ -1,6 +1,7 @@
 'use strict';
 
 var snoowrap = require('snoowrap');
+var google = require('googleapis')
 var config = require('./config.json');
 
 const CONFIG = {
@@ -17,12 +18,29 @@ const test_sub_name = 'testingground4bots';
 
 var r = new snoowrap(CONFIG);
 
+google.options({ auth: config.youtube_key });
+var Youtube = google.youtube('v3');
+
+Youtube.search.list({
+    part : 'snippet',
+    q : 'rampart trailer'},
+    function (err, result) {
+        if (err) {
+            console.log(err);
+        }
+        else {
+            console.log(result.items[0].snippet.title, result.items[0].id.videoId)}
+    }
+);
+
+
+/*
 r.getSubreddit(test_sub_name).getNew({limit : 1}).then(all => {
     all.forEach(post => {
         post.expandReplies().then(process(post));
     })
 });
-
+*/
 
 
 function process(post){
