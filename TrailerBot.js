@@ -1,7 +1,7 @@
 'use strict';
 
 var snoowrap = require('snoowrap');
-var google = require('googleapis')
+var google = require('googleapis');
 var config = require('./config.json');
 
 const CONFIG = {
@@ -14,42 +14,40 @@ const CONFIG = {
 
 const netflix_sub_name = 'NetflixBestOf';
 const netflix_domain_name = 'netflix.com';
-const test_sub_name = 'testingground4bots';
 
 var r = new snoowrap(CONFIG);
 
 google.options({ auth: config.youtube_key });
 var Youtube = google.youtube('v3');
 
-Youtube.search.list({
-    part : 'snippet',
-    q : 'rampart trailer'},
-    function (err, result) {
-        if (err) {
-            console.log(err);
-        }
-        else {
-            console.log(result.items[0].snippet.title, result.items[0].id.videoId)}
-    }
-);
-
-
-/*
-r.getSubreddit(test_sub_name).getNew({limit : 1}).then(all => {
+r.getSubreddit(netflix_sub_name).getNew({limit : 25}).then(all => {
     all.forEach(post => {
         post.expandReplies().then(process(post));
     })
 });
-*/
-
 
 function process(post){
-    //if (isValidDomain(post) && !hasTrailer(post)){
-    if (true) {
+    if (isValidDomain(post) && !hasTrailer(post)) {
         var title = parseTitle(post.title);
-        var url = getTrailerURL(title);
-        post.reply("[Trailer](" + url +")");
+        postTrailerURL(title);
     }
+}
+
+function postTrailerURL(title) {
+    var search = title + " Trailer";
+    Youtube.search.list({
+            part : 'snippet',
+            q : search},
+        function (err, res) {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                var url = "https://www.youtube.com/watch?v=" + res.items[0].id.videoId;
+                r.getSubmission('65ls2x').reply("[" + search + "](" + url +")");
+            }
+        }
+    );
 }
 
 function isValidDomain(post) {
@@ -65,19 +63,14 @@ function hasTrailer(post) {
     return false;
 }
 
-function parseTitle(title) {
-    return title;
-}
-
-function getTrailerURL(title) {
-    return "https://www.youtube.com/watch?v=-ZUwq1qOqpE";
-}
-
-function printValidPost(post){
-    if (isValidDomain(post) && !hasTrailer(post)) {
-        console.log(post.title + " " + post.id);
-        for (let comment of post.comments) {
-            console.log(comment.author.name);
-        }
+function parseTitle(str) {
+    var start = str.indexOf("]") + 1;
+    var end = str.indexOf("(", start);
+    if (str.charAt(start) === " ") {
+        start++;
     }
+    if (str.charAt(end - 1) === " ") {
+        end--;
+    }
+    return str.substring(start, end);
 }
